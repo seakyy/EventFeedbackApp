@@ -24,6 +24,20 @@ namespace EventFeedbackApp
                 app.UseHsts();
             }
 
+            app.MapGet("/api/admin/sessions/{id}/results", async (int id, AppDbContext db) =>
+            {
+                var stats = await db.Responses
+                    .Where(r => db.Questions.Any(q => q.Id == r.QuestionId && q.SessionId == id))
+                    .GroupBy(r => new { r.QuestionId, r.Answer })
+                    .Select(g => new {
+                        QuestionId = g.Key.QuestionId,
+                        Answer = g.Key.Answer,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+                return Results.Ok(stats);
+            });
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
