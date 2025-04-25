@@ -1,0 +1,77 @@
+﻿@page "{id:int}"
+@model EventFeedbackApp.Pages.Admin.ResultsModel
+@{
+    ViewData["Title"] = "Live Dashboard";
+}
+<h1>@ViewData["Title"] – Session @Model.SessionId</h1>
+
+<div id="chartsContainer" style="max-width:800px; margin:auto;"></div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // SessionId als JS-String
+        const sessionId = "@Model.SessionId";
+        const container = document.getElementById('chartsContainer');
+
+        // Holt die Rohdaten vom Server
+        async function fetchData() {
+            const res = await fetch(`/api/admin/sessions/${sessionId}/results`);
+            return await res.json();
+        }
+
+        // Baut eine Map: questionId -> { questionId, answers: [{answer, count}, …] }
+        function groupByQuestion(data) {
+            const map = {};
+            data.forEach(d => {
+                const qid = d.questionId;
+                if (!map[qid]) map[qid] = { questionId: qid, answers: [] };
+                map[qid].answers.push({ text: d.answer, count: d.count });
+            });
+            return Object.values(map);
+        }
+
+        // Erzeugt für jede Frage einen Chart
+        async function renderCharts() {
+            const raw = await fetchData();
+            const questions = groupByQuestion(raw);
+
+            // Container leeren (bei Update)
+            container.innerHTML = '';
+
+            questions.forEach(q => {
+                // Canvas anlegen
+                const canvas = document.createElement('canvas');
+                canvas.id = `chart_q${q.questionId}`;
+                canvas.style = 'margin:20px auto; max-width:600px;';
+                container.appendChild(canvas);
+
+                const ctx = canvas.getContext('2d');
+                const labels = q.answers.map(a => a.text);
+                const counts = q.answers.map(a => a.count);
+
+                // Chart generieren
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: `Frage ${q.questionId}`,
+                            data: counts
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            });
+        }
+
+        // Initiales Rendern und alle 5 Sek. aktualisieren
+        renderCharts();
+        setInterval(renderCharts, 5000);
+    </script>
+}
