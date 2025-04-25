@@ -7,3 +7,12 @@ EventFeedbackApp is a web-based platform that enables event organizers to create
 | **Mobile UX & Session Onboarding**       | Enables participants to join via QR code or session ID and view questions on mobile devices.    | Build static HTML page with QR-code input and dummy questions.     |
 | **Real-time Dashboard & Data Pipeline**  | Live updates of responses in bar and pie charts in the admin dashboard.                         | Integrate Chart.js with static data and simple polling.            |
 
+
+## 🌐 Accessible Endpoints
+
+-  **`/Admin/CreateSession`**
+-  **`/Feedback/JoinSession`**
+-  **`/Feedback/Questions/1`**
+-  **`/Admin/Results/1`**
+
+
