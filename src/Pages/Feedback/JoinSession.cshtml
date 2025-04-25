@@ -1,0 +1,19 @@
+﻿@page
+@model EventFeedbackApp.Pages.Feedback.JoinSessionModel
+@{
+    ViewData["Title"] = "Session beitreten";
+}
+<h1>@ViewData["Title"]</h1>
+
+<form method="post" class="w-100" style="max-width:400px; margin:auto;">
+    <div class="mb-3">
+        <label asp-for="SessionId" class="form-label">Session-ID</label>
+        <input asp-for="SessionId" class="form-control" placeholder="z.B. 1" />
+        <span asp-validation-for="SessionId" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Beitreten</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
