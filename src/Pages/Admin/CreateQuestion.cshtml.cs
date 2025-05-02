@@ -36,13 +36,16 @@ namespace EventFeedbackApp.Pages.Admin
             _db.Questions.Add(Question);
             await _db.SaveChangesAsync();
 
-            foreach (var text in OptionTexts.Where(t => !string.IsNullOrWhiteSpace(t)))
+            if (Question.Type == QuestionType.SingleChoice)
             {
-                _db.Options.Add(new Option
+                foreach (var text in OptionTexts.Where(t => !string.IsNullOrWhiteSpace(t)))
                 {
-                    QuestionId = Question.Id,
-                    Text = text.Trim()
-                });
+                    _db.Options.Add(new Option
+                    {
+                        QuestionId = Question.Id,
+                        Text = text.Trim()
+                    });
+                }
             }
             await _db.SaveChangesAsync();
 
