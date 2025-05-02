@@ -43,9 +43,25 @@
         const scanCtx = scanCanvas.getContext('2d');
         const resultEl = document.getElementById('scanResult');
 
+        let mediaStream = null;
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(stream => { video.srcObject = stream; })
+            .then(stream => {
+                mediaStream = stream;
+                video.srcObject = stream;
+            })
             .catch(console.error);
+
+        const stopMediaStream = () => {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+        };
+
+        window.addEventListener('beforeunload', stopMediaStream);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') stopMediaStream();
+        });
 
         video.addEventListener('play', () => {
             scanCanvas.width = video.videoWidth;
