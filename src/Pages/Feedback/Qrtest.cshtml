@@ -24,7 +24,11 @@
     <script>
         // GENERATE
         document.getElementById('btnGen').onclick = () => {
-            const text = document.getElementById('genText').value;
+            const text = document.getElementById('genText').value.trim();
+            if (!text) {
+                alert('Please enter valid text to generate a QR code.');
+                return;
+            }
             const container = document.getElementById('qrCanvas');
             container.innerHTML = '';
             QRCode.toCanvas(text, { width: 200 }, (err, canvas) => {
