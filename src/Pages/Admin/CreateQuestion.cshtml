@@ -1,0 +1,75 @@
+﻿@page "{id:int}"
+@model EventFeedbackApp.Pages.Admin.CreateQuestionModel
+@{
+    ViewData["Title"] = "Question anlegen";
+}
+<h1>@ViewData["Title"] – Session @Model.SessionId</h1>
+
+<form method="post" class="mb-5">
+    <input type="hidden" asp-for="SessionId" />
+
+    <div class="mb-3">
+        <label asp-for="Question.Text" class="form-label">Fragetext</label>
+        <input asp-for="Question.Text" class="form-control" />
+        <span asp-validation-for="Question.Text" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Question.Type" class="form-label">Fragetyp</label>
+        <select asp-for="Question.Type" class="form-select">
+            <option value="SingleChoice">Single-Choice</option>
+            <option value="Rating">Rating</option>
+            <option value="Text">Freitext</option>
+        </select>
+    </div>
+
+    <div id="optionsContainer">
+        <label class="form-label">Optionen (nur bei Single-Choice)</label>
+        @for (int i = 0; i < Model.OptionTexts.Count; i++)
+        {
+            <div class="input-group mb-2 option-group">
+                <input name="OptionTexts[@i]" value="@Model.OptionTexts[i]"
+                       class="form-control" placeholder="Option @i+1" />
+                <button type="button" class="btn btn-outline-danger btn-sm remove-opt">–</button>
+            </div>
+        }
+    </div>
+
+    <button type="button" id="addOpt" class="btn btn-outline-primary btn-sm mb-3">
+        + Option hinzufügen
+    </button>
+
+    <div>
+        <button type="submit" class="btn btn-success">Speichern</button>
+        <a asp-page="/Admin/ResultsSignalR" asp-route-id="@Model.SessionId" class="btn btn-secondary ms-2">
+            Abbrechen
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        // Hinzufügen / Entfernen von Option-Feldern
+        const container = document.getElementById('optionsContainer');
+        document.getElementById('addOpt').onclick = () => {
+            const idx = container.querySelectorAll('.option-group').length;
+            const div = document.createElement('div');
+            div.className = 'input-group mb-2 option-group';
+            div.innerHTML = `
+                <input name="OptionTexts[${idx}]" class="form-control" placeholder="Option ${idx+1}" />
+                <button type="button" class="btn btn-outline-danger btn-sm remove-opt">–</button>
+            `;
+            container.appendChild(div);
+        };
+        container.addEventListener('click', e => {
+            if (e.target.classList.contains('remove-opt')) {
+                e.target.closest('.option-group').remove();
+                // Re-index names
+                container.querySelectorAll('.option-group input').forEach((inp, i) => {
+                    inp.name = `OptionTexts[${i}]`;
+                    inp.placeholder = `Option ${i+1}`;
+                });
+            }
+        });
+    </script>
+}

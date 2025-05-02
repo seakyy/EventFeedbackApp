@@ -21,14 +21,13 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
     <script>
         // GENERATE
         document.getElementById('btnGen').onclick = () => {
-            const text = document.getElementById('genText').value.trim();
-            if (!text) {
-                alert('Please enter valid text to generate a QR code.');
-                return;
-            }
+            const text = document.getElementById('genText').value;
             const container = document.getElementById('qrCanvas');
             container.innerHTML = '';
             QRCode.toCanvas(text, { width: 200 }, (err, canvas) => {
@@ -43,25 +42,9 @@
         const scanCtx = scanCanvas.getContext('2d');
         const resultEl = document.getElementById('scanResult');
 
-        let mediaStream = null;
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(stream => {
-                mediaStream = stream;
-                video.srcObject = stream;
-            })
+            .then(stream => { video.srcObject = stream; })
             .catch(console.error);
-
-        const stopMediaStream = () => {
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-                mediaStream = null;
-            }
-        };
-
-        window.addEventListener('beforeunload', stopMediaStream);
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') stopMediaStream();
-        });
 
         video.addEventListener('play', () => {
             scanCanvas.width = video.videoWidth;

@@ -7,7 +7,10 @@
 <h1>@ViewData["Title"]</h1>
 <p>Session-ID: <strong>@Model.SessionId</strong></p>
 
-<form class="w-100" style="max-width:500px; margin:auto;">
+<form method="post" class="w-100" style="max-width:500px; margin:auto;">
+    <!-- unsichtbar mitbinden -->
+    <input type="hidden" asp-for="SessionId" />
+
     @foreach (var q in Model.Questions)
     {
         <div class="mb-4">
@@ -18,18 +21,22 @@
                 @foreach (var opt in q.Options)
                 {
                     <div class="form-check">
+                        <!-- Hier das Binding-Pattern: Answers[q_{Id}] -->
                         <input class="form-check-input" type="radio"
-                               name="q_@q.Id" id="opt_@opt.Id" value="@opt.Id" />
+                               name="Answers[q_@q.Id]" id="opt_@opt.Id"
+                               value="@opt.Id" />
                         <label class="form-check-label" for="opt_@opt.Id">
                             @opt.Text
                         </label>
                     </div>
                 }
             }
-
-            @* später: weitere Fragetypen (Rating, Freitext) *@
         </div>
     }
 
     <button type="submit" class="btn btn-success w-100">Antwort senden</button>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
