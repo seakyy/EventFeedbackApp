@@ -1,0 +1,79 @@
+﻿@page
+@model EventFeedbackApp.Pages.Feedback.QrTestModel
+@{
+    ViewData["Title"] = "QR-Code Test";
+}
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <h3>1️⃣ Generate QR</h3>
+        <input id="genText" class="form-control mb-2" placeholder="Enter text or session ID" />
+        <button id="btnGen" class="btn btn-primary mb-3">Generate</button>
+        <div id="qrCanvas"></div>
+    </div>
+    <div class="col-md-6">
+        <h3>2️⃣ Scan QR</h3>
+        <video id="video" autoplay muted playsinline style="width:100%; max-width:300px;"></video>
+        <canvas id="scanCanvas" hidden></canvas>
+        <p>Result: <strong id="scanResult">–</strong></p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // GENERATE
+        document.getElementById('btnGen').onclick = () => {
+            const text = document.getElementById('genText').value.trim();
+            if (!text) {
+                alert('Please enter valid text to generate a QR code.');
+                return;
+            }
+            const container = document.getElementById('qrCanvas');
+            container.innerHTML = '';
+            QRCode.toCanvas(text, { width: 200 }, (err, canvas) => {
+                if (err) console.error(err);
+                container.appendChild(canvas);
+            });
+        };
+
+        // SCAN
+        const video = document.getElementById('video');
+        const scanCanvas = document.getElementById('scanCanvas');
+        const scanCtx = scanCanvas.getContext('2d');
+        const resultEl = document.getElementById('scanResult');
+
+        let mediaStream = null;
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+                mediaStream = stream;
+                video.srcObject = stream;
+            })
+            .catch(console.error);
+
+        const stopMediaStream = () => {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+        };
+
+        window.addEventListener('beforeunload', stopMediaStream);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') stopMediaStream();
+        });
+
+        video.addEventListener('play', () => {
+            scanCanvas.width = video.videoWidth;
+            scanCanvas.height = video.videoHeight;
+            const tick = () => {
+                scanCtx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
+                const img = scanCtx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+                const code = jsQR(img.data, img.width, img.height);
+                if (code) resultEl.textContent = code.data;
+                requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        });
+    </script>
+}
