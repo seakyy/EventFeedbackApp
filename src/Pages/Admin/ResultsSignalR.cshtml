@@ -1,0 +1,90 @@
+﻿@page "{id:int}"
+@model EventFeedbackApp.Pages.Admin.ResultsSignalRModel
+@{
+    ViewData["Title"] = "Live Dashboard (SignalR)";
+}
+<h1>@ViewData["Title"] – Session @Model.SessionId</h1>
+
+<div id="chartsContainer" style="max-width:800px; margin:auto;"></div>
+
+@section Scripts {
+    <!-- SignalR client -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const sessionId = "@Model.SessionId";
+        const container = document.getElementById('chartsContainer');
+        let charts = {};
+
+        // API-Call
+        async function fetchResults() {
+          const res = await fetch(`/api/admin/sessions/${sessionId}/results`);
+          return res.json();
+        }
+
+        // Gruppieren nach Frage-ID
+        function groupByQuestion(data) {
+          const map = {};
+          data.forEach(d => {
+            if (!map[d.questionId]) map[d.questionId] = [];
+            map[d.questionId].push(d);
+          });
+          return map;
+        }
+
+        // Rendern oder Updaten der Charts
+        function render(dataMap) {
+          container.innerHTML = '';  // alten Inhalt löschen
+          Object.entries(dataMap).forEach(([qid, answers]) => {
+            // Canvas anlegen
+            const canvas = document.createElement('canvas');
+            canvas.style = 'margin:20px auto; max-width:600px;';
+            container.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+
+            // Labels & Werte
+            const labels = answers.map(a => a.answer);
+            const counts = answers.map(a => a.count);
+
+            const cfg = {
+              type: 'bar',
+              data: {
+                labels,
+                datasets: [{ label: `Frage ${qid}`, data: counts }]
+              },
+              options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } }
+              }
+            };
+
+            // Chart neu erzeugen
+            charts[qid] = new Chart(ctx, cfg);
+          });
+        }
+
+        // Initiales Rendern
+        fetchResults().then(raw => {
+          const dataMap = groupByQuestion(raw);
+          render(dataMap);
+        });
+
+        // SignalR-Verbindung
+        const connection = new signalR.HubConnectionBuilder()
+          .withUrl("/feedbackHub")
+          .build();
+
+        // Bei neuem Update neu rendern
+        connection.on("ReceiveUpdate", id => {
+          if (parseInt(id) === parseInt(sessionId)) {
+            fetchResults().then(raw => {
+              const dataMap = groupByQuestion(raw);
+              render(dataMap);
+            });
+          }
+        });
+
+        connection.start().catch(err => console.error(err));
+    </script>
+}

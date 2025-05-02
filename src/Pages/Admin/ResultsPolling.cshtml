@@ -1,0 +1,54 @@
+﻿@page "{id:int}"
+@model EventFeedbackApp.Pages.Admin.ResultsPollingModel
+@{
+    ViewData["Title"] = "Live Dashboard (Polling)";
+}
+<h1>@ViewData["Title"] – Session @Model.SessionId</h1>
+
+<canvas id="pollingChart" style="max-width:600px; margin:auto;"></canvas>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const sessionId = "@Model.SessionId";
+        const ctx = document.getElementById('pollingChart').getContext('2d');
+        let chart;
+
+        // 1. Daten abrufen
+        async function fetchResults() {
+            const res = await fetch(`/api/admin/sessions/${sessionId}/results`);
+            return res.json();
+        }
+
+        // 2. Rohdaten transformieren (einfach: erste Frage)
+        function transform(data) {
+            const labels = data.map(d => d.answer);
+            const counts = data.map(d => d.count);
+            return { labels, counts };
+        }
+
+        // 3. Chart initialisieren
+        async function init() {
+            const raw = await fetchResults();
+            const { labels, counts } = transform(raw);
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Antworten', data: counts }] },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        // 4. Chart updaten
+        async function update() {
+            const raw = await fetchResults();
+            const { labels, counts } = transform(raw);
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = counts;
+            chart.update();
+        }
+
+        init();
+        // Polling alle 5 Sekunden
+        setInterval(update, 5000);
+    </script>
+}

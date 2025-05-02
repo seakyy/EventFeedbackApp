@@ -1,33 +1,65 @@
-﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using EventFeedbackApp.Data;
+using EventFeedbackApp.Hubs;
 using EventFeedbackApp.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventFeedbackApp.Pages.Feedback
 {
     public class QuestionsModel : PageModel
     {
+        private readonly AppDbContext _db;
+        private readonly IHubContext<FeedbackHub> _hub;
+
+        public QuestionsModel(AppDbContext db, IHubContext<FeedbackHub> hub)
+        {
+            _db = db;
+            _hub = hub;
+        }
+
+        // Hier wird die ID aus der Route übergeben
+        [BindProperty]
         public int SessionId { get; set; }
+
         public List<Question> Questions { get; set; } = new();
 
-        public void OnGet(int id)
+        // Antworten werden gebunden
+        [BindProperty]
+        public Dictionary<string, string> Answers { get; set; } = new();
+
+        // ✔️ Nimm die id als Parameter entgegen und setze SessionId
+        public async Task OnGetAsync(int id)
         {
             SessionId = id;
+            Questions = await _db.Questions
+                                 .Include(q => q.Options)
+                                 .Where(q => q.SessionId == id)
+                                 .ToListAsync();
+        }
 
-            // POC: Dummy-Frage(n) – später aus DB laden
-            Questions = new List<Question>
+        public async Task<IActionResult> OnPostAsync()
+        {
+            // SessionId bleibt erhalten
+            foreach (var entry in Answers)
             {
-                new Question
+                if (entry.Key.StartsWith("q_") &&
+                    int.TryParse(entry.Key.Substring(2), out var qid))
                 {
-                    Id = 1,
-                    Text = "Wie hat Ihnen die Session gefallen?",
-                    Type = QuestionType.SingleChoice,
-                    Options = new List<Option>
+                    _db.Responses.Add(new Response
                     {
-                        new Option { Id = 1, Text = "👍 Gut" },
-                        new Option { Id = 2, Text = "👌 OK" },
-                        new Option { Id = 3, Text = "👎 Schlecht" }
-                    }
+                        QuestionId = qid,
+                        Answer = entry.Value,
+                        Timestamp = DateTime.UtcNow
+                    });
                 }
-            };
+            }
+            await _db.SaveChangesAsync();
+            await _hub.Clients.All.SendAsync("ReceiveUpdate", SessionId);
+
+            // Leite zurück auf dieselbe Seite, damit SessionId erneut über OnGetAsync übernommen wird
+            return RedirectToPage("Questions", new { id = SessionId });
         }
     }
 }
