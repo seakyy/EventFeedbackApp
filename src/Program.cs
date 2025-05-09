@@ -6,11 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var dbPath = Path.Combine(builder.Environment.ContentRootPath, "feedback.db");
-
 // 1) DbContext mit SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite($"Data Source={dbPath}"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 2) SignalR
 builder.Services.AddSignalR();
@@ -27,22 +25,22 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-using (var scope = app.Services.CreateScope())
+/* using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (!db.Questions.Any())
+    if (!db.Sessions.Any())
     {
-        var q = new Question { SessionId = 1, Text = "Wie fandest du die Session?", Type = QuestionType.SingleChoice };
+        var s = new Session { Title = "Demo-Session" };
+        db.Sessions.Add(s);
+        await db.SaveChangesAsync();
+        var q = new Question { SessionId = s.Id, Text = "...", Type = QuestionType.SingleChoice };
         db.Questions.Add(q);
         await db.SaveChangesAsync();
-        db.Options.AddRange(
-            new Option { QuestionId = q.Id, Text = "👍 Gut" },
-            new Option { QuestionId = q.Id, Text = "👌 OK" },
-            new Option { QuestionId = q.Id, Text = "👎 Schlecht" }
-        );
+        // Placeholder for adding options to the question in the future.
         await db.SaveChangesAsync();
     }
-}
+
+}  */
 
 
 // 5) Middleware & Routing

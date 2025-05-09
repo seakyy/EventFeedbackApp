@@ -1,0 +1,15 @@
+﻿@page "{sessionId:int}"
+@model ListQuestionsModel
+<h1>Fragen für Session @Model.SessionId</h1>
+<table class="table">
+    <thead><tr><th>Text</th><th>Optionen</th></tr></thead>
+    <tbody>
+    @foreach(var q in Model.Questions)
+    {
+        <tr>
+            <td>@q.Text</td>
+            <td>@string.Join(", ", q.Options.Select(o => o.Text))</td>
+        </tr>
+    }
+    </tbody>
+</table>

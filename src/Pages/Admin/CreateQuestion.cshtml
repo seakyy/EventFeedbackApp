@@ -1,75 +1,79 @@
-﻿@page "{id:int}"
+﻿@page "{sessionId:int}"
 @model EventFeedbackApp.Pages.Admin.CreateQuestionModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using EventFeedbackApp.Models
 @{
-    ViewData["Title"] = "Question anlegen";
+    ViewData["Title"] = "Frage anlegen";
 }
-<h1>@ViewData["Title"] – Session @Model.SessionId</h1>
+<h1>@ViewData["Title"] – Session @Model.Input.SessionId</h1>
 
-<form method="post" class="mb-5">
-    <input type="hidden" asp-for="SessionId" />
+<form method="post" asp-page="./CreateQuestion" asp-route-sessionId="@Model.Input.SessionId" class="mb-5">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <input type="hidden" asp-for="Input.SessionId" />
 
     <div class="mb-3">
-        <label asp-for="Question.Text" class="form-label">Fragetext</label>
-        <input asp-for="Question.Text" class="form-control" />
-        <span asp-validation-for="Question.Text" class="text-danger"></span>
+        <label asp-for="Input.Text" class="form-label">Fragetext</label>
+        <input asp-for="Input.Text" class="form-control" />
+        <span asp-validation-for="Input.Text" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="Question.Type" class="form-label">Fragetyp</label>
-        <select asp-for="Question.Type" class="form-select">
+        <label asp-for="Input.Type" class="form-label">Fragetyp</label>
+        <select asp-for="Input.Type" class="form-select">
             <option value="SingleChoice">Single-Choice</option>
             <option value="Rating">Rating</option>
             <option value="Text">Freitext</option>
         </select>
+        <span asp-validation-for="Input.Type" class="text-danger"></span>
     </div>
 
-    <div id="optionsContainer">
+    <div id="optionsContainer" class="mb-3" style="display:@(Model.Input.Type == QuestionType.SingleChoice ? "block" : "none")">
         <label class="form-label">Optionen (nur bei Single-Choice)</label>
-        @for (int i = 0; i < Model.OptionTexts.Count; i++)
+        @for (int i = 0; i < Model.Input.OptionTexts.Count; i++)
         {
             <div class="input-group mb-2 option-group">
-                <input name="OptionTexts[@i]" value="@Model.OptionTexts[i]"
-                       class="form-control" placeholder="Option @i+1" />
+                <input name="Input.OptionTexts[@i]" value="@Model.Input.OptionTexts[i]" class="form-control" placeholder="Option @(i+1)" />
                 <button type="button" class="btn btn-outline-danger btn-sm remove-opt">–</button>
             </div>
         }
     </div>
 
-    <button type="button" id="addOpt" class="btn btn-outline-primary btn-sm mb-3">
-        + Option hinzufügen
-    </button>
+    <button type="button" id="addOpt" class="btn btn-outline-primary btn-sm mb-3">+ Option hinzufügen</button>
 
     <div>
         <button type="submit" class="btn btn-success">Speichern</button>
-        <a asp-page="/Admin/ResultsSignalR" asp-route-id="@Model.SessionId" class="btn btn-secondary ms-2">
-            Abbrechen
-        </a>
+        <a asp-page="/Admin/ResultsSignalR" asp-route-sessionId="@Model.Input.SessionId" class="btn btn-secondary ms-2">Abbrechen</a>
     </div>
 </form>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
-        // Hinzufügen / Entfernen von Option-Feldern
+        console.log("CreateQuestion JS geladen");
         const container = document.getElementById('optionsContainer');
-        document.getElementById('addOpt').onclick = () => {
-            const idx = container.querySelectorAll('.option-group').length;
-            const div = document.createElement('div');
-            div.className = 'input-group mb-2 option-group';
-            div.innerHTML = `
-                <input name="OptionTexts[${idx}]" class="form-control" placeholder="Option ${idx+1}" />
-                <button type="button" class="btn btn-outline-danger btn-sm remove-opt">–</button>
-            `;
-            container.appendChild(div);
-        };
-        container.addEventListener('click', e => {
-            if (e.target.classList.contains('remove-opt')) {
-                e.target.closest('.option-group').remove();
-                // Re-index names
-                container.querySelectorAll('.option-group input').forEach((inp, i) => {
-                    inp.name = `OptionTexts[${i}]`;
-                    inp.placeholder = `Option ${i+1}`;
-                });
-            }
-        });
+        const addBtn = document.getElementById('addOpt');
+        if (container && addBtn) {
+            addBtn.addEventListener('click', () => {
+                const idx = container.querySelectorAll('.option-group').length;
+                const div = document.createElement('div');
+                div.className = 'input-group mb-2 option-group';
+                div.innerHTML = `
+                    <input name="Input.OptionTexts[${idx}]" class="form-control" placeholder="Option ${idx+1}" />
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-opt">–</button>`;
+                container.appendChild(div);
+            });
+            container.addEventListener('click', e => {
+                if (e.target.classList.contains('remove-opt')) {
+                    e.target.closest('.option-group').remove();
+                    container.querySelectorAll('.option-group input').forEach((inp, i) => {
+                        inp.name = `Input.OptionTexts[${i}]`;
+                        inp.placeholder = `Option ${i+1}`;
+                    });
+                }
+            });
+        } else {
+            console.error("Option-Container oder Add-Button nicht gefunden", container, addBtn);
+        }
     </script>
 }
