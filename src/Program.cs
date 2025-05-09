@@ -36,7 +36,7 @@ using (var scope = app.Services.CreateScope())
         var q = new Question { SessionId = s.Id, Text = "...", Type = QuestionType.SingleChoice };
         db.Questions.Add(q);
         await db.SaveChangesAsync();
-        db.Options.AddRange();
+        // Placeholder for adding options to the question in the future.
         await db.SaveChangesAsync();
     }
 
