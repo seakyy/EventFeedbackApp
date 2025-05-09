@@ -1,8 +1,9 @@
-using EventFeedbackApp.Data;
-using EventFeedbackApp.Models;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
+using EventFeedbackApp.Data;
+using EventFeedbackApp.Models;
 
 namespace EventFeedbackApp.Pages.Admin
 {
@@ -11,45 +12,44 @@ namespace EventFeedbackApp.Pages.Admin
         private readonly AppDbContext _db;
         public CreateQuestionModel(AppDbContext db) => _db = db;
 
-        [BindProperty(SupportsGet = true)]
-        public int SessionId { get; set; }
-
         [BindProperty]
-        public Question Question { get; set; } = new();
+        public CreateQuestionViewModel Input { get; set; } = new();
 
-        [BindProperty]
-        public List<string> OptionTexts { get; set; } = new List<string> { "", "" };
-
-        public async Task<IActionResult> OnGetAsync(int id)
+        // <-- Fügt die SessionId beim GET-Request hinzu
+        public void OnGet(int sessionId)
         {
-            SessionId = id;
-            if (!await _db.Sessions.AnyAsync(s => s.Id == id))
-                return NotFound();
-            return Page();
+            Input.SessionId = sessionId;
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!ModelState.IsValid) return Page();
+            if (!ModelState.IsValid)
+                return Page();
 
-            Question.SessionId = SessionId;
-            _db.Questions.Add(Question);
+            // Ab hier ist Input.SessionId garantiert korrekt ≠ 0
+            var q = new Question
+            {
+                SessionId = Input.SessionId,
+                Text = Input.Text,
+                Type = Input.Type
+            };
+            _db.Questions.Add(q);
             await _db.SaveChangesAsync();
 
-            if (Question.Type == QuestionType.SingleChoice)
+            if (Input.Type == QuestionType.SingleChoice)
             {
-                foreach (var text in OptionTexts.Where(t => !string.IsNullOrWhiteSpace(t)))
+                var opts = Input.OptionTexts
+                    .Where(t => !string.IsNullOrWhiteSpace(t))
+                    .Select(t => new Option { QuestionId = q.Id, Text = t.Trim() })
+                    .ToList();
+                if (opts.Any())
                 {
-                    _db.Options.Add(new Option
-                    {
-                        QuestionId = Question.Id,
-                        Text = text.Trim()
-                    });
+                    _db.Options.AddRange(opts);
+                    await _db.SaveChangesAsync();
                 }
             }
-            await _db.SaveChangesAsync();
 
-            return RedirectToPage("/Admin/ResultsSignalR", new { id = SessionId });
+            return RedirectToPage("/Feedback/Questions", new { id = Input.SessionId });
         }
     }
 }

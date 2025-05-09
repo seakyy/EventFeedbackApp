@@ -1,4 +1,18 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/feedbackHub")
+    .build();
 
-// Write your JavaScript code.
+connection.on("ReceiveUpdate", sessionId => {
+    loadResults(sessionId);
+});
+
+async function loadResults(sessionId) {
+    const res = await fetch(`/api/admin/sessions/${sessionId}/results`);
+    const stats = await res.json();
+    // … hier deine Logik, um stats ins DOM zu schreiben …
+}
+
+connection.start().catch(err => console.error(err));
+
+// Beim ersten Laden
+loadResults(@Model.SessionId);
