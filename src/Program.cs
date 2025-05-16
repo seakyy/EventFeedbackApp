@@ -5,6 +5,8 @@ using EventFeedbackApp.Models;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://localhost:8034");
+
 
 // 1) DbContext mit SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -36,7 +38,7 @@ using (var scope = app.Services.CreateScope())
         var q = new Question { SessionId = s.Id, Text = "...", Type = QuestionType.SingleChoice };
         db.Questions.Add(q);
         await db.SaveChangesAsync();
-        // Placeholder for adding options to the question in the future.
+        db.Options.AddRange();
         await db.SaveChangesAsync();
     }
 
@@ -50,7 +52,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 

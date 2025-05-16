@@ -19,7 +19,7 @@ namespace EventFeedbackApp.Pages.Feedback
             _hub = hub;
         }
 
-        // Hier wird die ID aus der Route übergeben
+        // ID aus der Route übergeben
         [BindProperty]
         public int SessionId { get; set; }
 
@@ -29,7 +29,6 @@ namespace EventFeedbackApp.Pages.Feedback
         [BindProperty]
         public Dictionary<string, string> Answers { get; set; } = new();
 
-        // ✔️ Nimm die id als Parameter entgegen und setze SessionId
         public async Task OnGetAsync(int id)
         {
             SessionId = id;
@@ -41,7 +40,6 @@ namespace EventFeedbackApp.Pages.Feedback
 
         public async Task<IActionResult> OnPostAsync()
         {
-            // SessionId bleibt erhalten
             foreach (var entry in Answers)
             {
                 if (entry.Key.StartsWith("q_") &&
@@ -58,7 +56,6 @@ namespace EventFeedbackApp.Pages.Feedback
             await _db.SaveChangesAsync();
             await _hub.Clients.All.SendAsync("ReceiveUpdate", SessionId);
 
-            // Leite zurück auf dieselbe Seite, damit SessionId erneut über OnGetAsync übernommen wird
             return RedirectToPage("Questions", new { id = SessionId });
         }
     }

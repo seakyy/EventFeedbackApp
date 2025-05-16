@@ -12,7 +12,6 @@ namespace EventFeedbackApp.Pages.Feedback
 
         public IActionResult OnPost()
         {
-            // leitet weiter an Seite mit Fragen
             return RedirectToPage("Questions", new { id = SessionId });
         }
     }

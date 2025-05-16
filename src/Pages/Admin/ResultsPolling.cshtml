@@ -14,20 +14,20 @@
         const ctx = document.getElementById('pollingChart').getContext('2d');
         let chart;
 
-        // 1. Daten abrufen
+        // Daten abrufen
         async function fetchResults() {
             const res = await fetch(`/api/admin/sessions/${sessionId}/results`);
             return res.json();
         }
 
-        // 2. Rohdaten transformieren (einfach: erste Frage)
+        // Rohdaten transformieren 
         function transform(data) {
             const labels = data.map(d => d.answer);
             const counts = data.map(d => d.count);
             return { labels, counts };
         }
 
-        // 3. Chart initialisieren
+        // Chart initialisieren
         async function init() {
             const raw = await fetchResults();
             const { labels, counts } = transform(raw);
@@ -38,7 +38,7 @@
             });
         }
 
-        // 4. Chart updaten
+        // Chart updaten
         async function update() {
             const raw = await fetchResults();
             const { labels, counts } = transform(raw);
