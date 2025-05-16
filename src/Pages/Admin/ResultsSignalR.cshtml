@@ -37,13 +37,11 @@
         function render(dataMap) {
           container.innerHTML = '';  // alten Inhalt löschen
           Object.entries(dataMap).forEach(([qid, answers]) => {
-            // Canvas anlegen
             const canvas = document.createElement('canvas');
             canvas.style = 'margin:20px auto; max-width:600px;';
             container.appendChild(canvas);
             const ctx = canvas.getContext('2d');
 
-            // Labels & Werte
             const labels = answers.map(a => a.answer);
             const counts = answers.map(a => a.count);
 
@@ -59,12 +57,11 @@
               }
             };
 
-            // Chart neu erzeugen
             charts[qid] = new Chart(ctx, cfg);
           });
         }
 
-        // Initiales Rendern
+        // Rendern
         fetchResults().then(raw => {
           const dataMap = groupByQuestion(raw);
           render(dataMap);

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using EventFeedbackApp.Data;
 using EventFeedbackApp.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventFeedbackApp.Pages.Admin
 {
@@ -15,7 +16,6 @@ namespace EventFeedbackApp.Pages.Admin
         [BindProperty]
         public CreateQuestionViewModel Input { get; set; } = new();
 
-        // <-- Fügt die SessionId beim GET-Request hinzu
         public void OnGet(int sessionId)
         {
             Input.SessionId = sessionId;
@@ -26,7 +26,14 @@ namespace EventFeedbackApp.Pages.Admin
             if (!ModelState.IsValid)
                 return Page();
 
-            // Ab hier ist Input.SessionId garantiert korrekt ≠ 0
+            // Security-Feature: Prüfen ob die Session überhaupt existiert
+            var sessionExists = await _db.Sessions.AnyAsync(s => s.Id == Input.SessionId);
+            if (!sessionExists)
+            {
+                ModelState.AddModelError("", "Die angegebene Session existiert nicht.");
+                return Page();
+            }
+
             var q = new Question
             {
                 SessionId = Input.SessionId,
@@ -49,7 +56,10 @@ namespace EventFeedbackApp.Pages.Admin
                 }
             }
 
-            return RedirectToPage("/Feedback/Questions", new { id = Input.SessionId });
+            return RedirectToPage("/Feedback/Questions", new { id = Input.SessionId }); // Only works locally
+
+
         }
+
     }
 }

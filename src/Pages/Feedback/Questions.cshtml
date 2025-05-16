@@ -8,7 +8,6 @@
 <p>Session-ID: <strong>@Model.SessionId</strong></p>
 
 <form method="post" class="w-100" style="max-width:500px; margin:auto;">
-    <!-- unsichtbar mitbinden -->
     <input type="hidden" asp-for="SessionId" />
 
     @foreach (var q in Model.Questions)
@@ -21,7 +20,6 @@
                 @foreach (var opt in q.Options)
                 {
                     <div class="form-check">
-                        <!-- Hier das Binding-Pattern: Answers[q_{Id}] -->
                         <input type="radio"
                                id="opt_@opt.Id"
                                name="Answers[q_@opt.QuestionId]"

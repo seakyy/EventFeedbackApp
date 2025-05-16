@@ -1,0 +1,39 @@
+﻿@page
+@model EventFeedbackApp.Pages.Admin.SessionOverviewModel
+@{
+    ViewData["Title"] = "Session-Übersicht";
+}
+
+<h1 class="display-5 text-center mb-4">Admin Dashboard – Sessions</h1>
+
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+    <tr>
+        <th scope="col">Session</th>
+        <th>Fragen</th>
+        <th>Live-Resultate</th>
+        <th>Neue Frage</th>
+        <th>QR-Link</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var s in Model.Sessions)
+    {
+        <tr>
+            <td>@s.Title (ID: @s.Id)</td>
+            <td>
+                <a class="btn btn-sm btn-outline-primary" asp-page="/Feedback/Questions" asp-route-id="@s.Id">Anzeigen</a>
+            </td>
+            <td>
+                <a class="btn btn-sm btn-outline-success" asp-page="/Admin/ResultsSignalR" asp-route-sessionId="@s.Id">Live Dashboard</a>
+            </td>
+            <td>
+                <a class="btn btn-sm btn-outline-warning" asp-page="/Admin/CreateQuestion" asp-route-sessionId="@s.Id">Frage hinzufügen</a>
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm" readonly value="@($"{Model.NgrokBaseUrl}/Feedback/Questions/{s.Id}")" />
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

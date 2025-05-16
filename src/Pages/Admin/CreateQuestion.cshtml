@@ -7,7 +7,7 @@
 }
 <h1>@ViewData["Title"] – Session @Model.Input.SessionId</h1>
 
-<form method="post" asp-page="./CreateQuestion" asp-route-sessionId="@Model.Input.SessionId" class="mb-5">
+<form method="post" asp-route-sessionId="@Model.Input.SessionId" class="mb-5">
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
     <input type="hidden" asp-for="Input.SessionId" />

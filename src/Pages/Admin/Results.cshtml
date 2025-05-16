@@ -20,7 +20,7 @@
             return await res.json();
         }
 
-        // Baut eine Map: questionId -> { questionId, answers: [{answer, count}, …] }
+        // Gruppiert die Rohdaten nach Frage
         function groupByQuestion(data) {
             const map = {};
             data.forEach(d => {
@@ -36,11 +36,10 @@
             const raw = await fetchData();
             const questions = groupByQuestion(raw);
 
-            // Container leeren (bei Update)
+            
             container.innerHTML = '';
 
             questions.forEach(q => {
-                // Canvas anlegen
                 const canvas = document.createElement('canvas');
                 canvas.id = `chart_q${q.questionId}`;
                 canvas.style = 'margin:20px auto; max-width:600px;';
@@ -50,7 +49,6 @@
                 const labels = q.answers.map(a => a.text);
                 const counts = q.answers.map(a => a.count);
 
-                // Chart generieren
                 new Chart(ctx, {
                     type: 'bar',
                     data: {
@@ -70,7 +68,7 @@
             });
         }
 
-        // Initiales Rendern und alle 5 Sek. aktualisieren
+        // Rendern und alle 5 Sek. aktualisieren
         renderCharts();
         setInterval(renderCharts, 5000);
     </script>
