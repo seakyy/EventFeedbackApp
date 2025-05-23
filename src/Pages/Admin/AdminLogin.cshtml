@@ -1,0 +1,20 @@
+﻿@page
+@model EventFeedbackApp.Pages.Admin.AdminLoginModel
+@{
+    ViewData["Title"] = "Admin Login";
+}
+
+<h2>Admin Login</h2>
+
+<form method="post">
+    <div class="mb-3">
+        <label for="Password">Passwort:</label>
+        <input type="password" asp-for="Password" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="text-danger mt-2">@Model.ErrorMessage</div>
+}
