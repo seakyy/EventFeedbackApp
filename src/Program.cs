@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using EventFeedbackApp.Data;
 using EventFeedbackApp.Hubs;
+using EventFeedbackApp.Middleware;
 using EventFeedbackApp.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -55,6 +56,8 @@ if (!app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseMiddleware<AdminAuthMiddleware>();
+
 
 // 6) Endpoints
 
