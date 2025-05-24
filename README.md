@@ -8,6 +8,11 @@ EventFeedbackApp is a web-based platform that enables event organizers to create
 | **Real-time Dashboard & Data Pipeline**  | Live updates of responses in bar and pie charts in the admin dashboard.                         | Integrate Chart.js with static data and simple polling.            |
 
 
+# Overview Diagram
+
+![diagram](https://github.com/user-attachments/assets/73975b94-94fc-4198-beda-c22589275e70)
+
+
 ## 🌐 Accessible Endpoints
 
 -  **`/Admin/CreateSession`**
